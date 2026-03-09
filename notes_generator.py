@@ -281,4 +281,4 @@ st.sidebar.markdown("---")
 st.sidebar.write("Max document size: 50k characters")
 st.sidebar.write("")
 st.markdown("---")
-ΛVICΛ tinker labs — 2026
+st.sidebar.write("ΛVICΛ tinker labs — 2026")
