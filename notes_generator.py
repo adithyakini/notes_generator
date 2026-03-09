@@ -186,7 +186,7 @@ def process_document(text):
 
 st.title("🗜 Crunch it")
 st.markdown("---")
-st.caption("Study Notes Generator | ΛVICΛ 2026")
+st.caption("Study Notes Generator")
 
 st.markdown("""
 Upload **PDF / PPTX / DOCX / TXT**
@@ -278,5 +278,7 @@ st.sidebar.write("Model: gpt-4o-mini")
 st.sidebar.write("Optimized for low OpenAI cost")
 
 st.sidebar.markdown("---")
-
 st.sidebar.write("Max document size: 50k characters")
+st.sidebar.write("")
+st.markdown("---")
+ΛVICΛ tinker labs — 2026
