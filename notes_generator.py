@@ -4,21 +4,20 @@ from pptx import Presentation
 import docx
 from openai import OpenAI
 import textwrap
-import hashlib
 
-# ==========================
+# ==================================
 # CONFIG
-# ==========================
+# ==================================
 
-st.set_page_config(page_title="AI Notes Generator", layout="wide")
+st.set_page_config(page_title="AI Study Engine", layout="wide")
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 MAX_CHUNK_SIZE = 2000
 
-# ==========================
+# ==================================
 # FILE TEXT EXTRACTION
-# ==========================
+# ==================================
 
 def extract_text(file):
 
@@ -40,8 +39,8 @@ def extract_text(file):
 
     elif file.name.endswith(".docx"):
         doc = docx.Document(file)
-        for para in doc.paragraphs:
-            text += para.text + "\n"
+        for p in doc.paragraphs:
+            text += p.text + "\n"
 
     elif file.name.endswith(".txt"):
         text = file.read().decode()
@@ -49,9 +48,9 @@ def extract_text(file):
     return text
 
 
-# ==========================
+# ==================================
 # TEXT CHUNKING
-# ==========================
+# ==================================
 
 def chunk_text(text, size=MAX_CHUNK_SIZE):
 
@@ -65,36 +64,63 @@ def chunk_text(text, size=MAX_CHUNK_SIZE):
     return chunks
 
 
-# ==========================
-# OPENAI CALL
-# ==========================
+# ==================================
+# OPENAI PROCESSING
+# ==================================
 
-def summarize_chunk(chunk, mode):
+def ai_process(chunk, mode):
 
     if mode == "Quick":
-        instruction = "Create a concise summary and cheat sheet."
-    else:
-        instruction = """
-        Convert the content into:
 
-        1. Summary
-        2. Cheat Sheet
-        3. Study Notes
-        4. Key Takeaways
-        """
+        instruction = """
+Create:
+
+1. Short Summary
+2. Bullet Cheat Sheet
+3. Key Takeaways
+"""
+
+    elif mode == "Study Mode":
+
+        instruction = """
+Create structured study material:
+
+1. Summary
+2. Cheat Sheet
+3. Study Notes
+4. Memory Tricks
+5. Key Takeaways
+6. 5 Practice Questions
+"""
+
+    else:
+
+        instruction = """
+Create detailed structured notes including:
+
+1. Executive Summary
+2. Detailed Notes
+3. Cheat Sheet
+4. Key Concepts
+5. Key Takeaways
+6. 10 Practice Questions
+"""
 
     prompt = f"""
-    {instruction}
+{instruction}
 
-    Content:
-    {chunk}
-    """
+Content:
+{chunk}
+"""
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         temperature=0.3,
         messages=[
-            {"role": "system", "content": "You are an expert study assistant that creates concise study material."},
+            {
+                "role": "system",
+                "content": "You are an expert teacher that converts study material into clear learning notes."
+            },
             {"role": "user", "content": prompt}
         ]
     )
@@ -102,9 +128,9 @@ def summarize_chunk(chunk, mode):
     return response.choices[0].message.content
 
 
-# ==========================
-# CACHE TO SAVE API COST
-# ==========================
+# ==================================
+# CACHE (SAVE API COST)
+# ==================================
 
 @st.cache_data(show_spinner=False)
 def process_document(text, mode):
@@ -113,63 +139,69 @@ def process_document(text, mode):
 
     results = []
 
-    for chunk in chunks:
-        summary = summarize_chunk(chunk, mode)
-        results.append(summary)
+    for c in chunks:
+        result = ai_process(c, mode)
+        results.append(result)
 
     return "\n\n".join(results)
 
 
-# ==========================
+# ==================================
 # STREAMLIT UI
-# ==========================
+# ==================================
 
-st.title("📚 AI Notes + Cheat Sheet Generator")
+st.title("🧠 AI Study Engine")
 
-st.markdown(
-"""
-Upload **PDF / PPTX / DOCX / TXT** and convert them into:
+st.markdown("""
+Upload **PDF / PPT / DOCX / TXT**
+
+AI will convert it into:
 
 • Summary  
 • Cheat Sheet  
 • Study Notes  
-• Key Takeaways  
-"""
-)
+• Memory Tricks  
+• Practice Questions  
+""")
 
 uploaded_file = st.file_uploader(
-    "Upload your document",
-    type=["pdf", "pptx", "docx", "txt"]
+    "Upload Study Material",
+    type=["pdf","pptx","docx","txt"]
 )
 
 mode = st.radio(
-    "Processing Mode",
-    ["Quick (Cheaper)", "Detailed"]
+    "Select Mode",
+    [
+        "Quick",
+        "Study Mode",
+        "Deep Learning Mode"
+    ]
 )
 
 if uploaded_file:
 
-    st.success("File uploaded successfully")
+    st.success("File Uploaded")
 
-    if st.button("Generate Notes"):
+    if st.button("Generate Study Material"):
 
         with st.spinner("Extracting text..."):
-
             text = extract_text(uploaded_file)
 
         if len(text) < 100:
-            st.error("Not enough readable text in file.")
+            st.error("File contains very little readable text.")
             st.stop()
 
-        st.info(f"Document length: {len(text)} characters")
+        st.info(f"Text size: {len(text)} characters")
 
-        with st.spinner("Generating AI Notes..."):
+        with st.spinner("AI is building your study material..."):
 
             result = process_document(text, mode)
 
-        st.success("Notes Generated!")
+        st.success("Done!")
 
-        tab1, tab2 = st.tabs(["📖 Read", "⬇ Download"])
+        tab1, tab2, tab3 = st.tabs(
+            ["📖 Read", "⬇ Download", "🖨 Print"]
+        )
 
         with tab1:
             st.markdown(result)
@@ -177,44 +209,42 @@ if uploaded_file:
         with tab2:
 
             st.download_button(
-                label="Download Notes",
-                data=result,
-                file_name="ai_notes.txt"
+                "Download TXT",
+                result,
+                file_name="study_notes.txt"
             )
 
             st.download_button(
-                label="Download Markdown",
-                data=result,
-                file_name="ai_notes.md"
+                "Download Markdown",
+                result,
+                file_name="study_notes.md"
             )
 
-        st.markdown("---")
+        with tab3:
 
-        st.markdown("### 🖨 Print")
+            st.code(result)
 
-        st.code(result)
+            st.caption(
+                "Use browser print → Save as PDF"
+            )
 
-        st.caption("Use browser print → Save as PDF")
-
-
-# ==========================
+# ==================================
 # SIDEBAR
-# ==========================
+# ==================================
 
-st.sidebar.header("About")
+st.sidebar.header("AI Study Engine")
 
-st.sidebar.write(
-"""
-This tool converts study material into:
+st.sidebar.write("""
+Turn any document into:
 
-• AI Summaries  
+• Smart Notes  
 • Cheat Sheets  
-• Quick Notes  
-
-Optimized to minimize OpenAI API costs.
-"""
-)
+• Exam Prep  
+• Practice Questions  
+""")
 
 st.sidebar.markdown("---")
 
 st.sidebar.write("Model: gpt-4o-mini")
+
+st.sidebar.write("Cost optimized for personal use")
