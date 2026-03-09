@@ -184,7 +184,9 @@ def process_document(text):
 # STREAMLIT UI
 # ============================================================
 
-st.title("🧠 AI Study Engine")
+st.title("🗜 Crunch it")
+st.markdown("---")
+st.caption("notes generator | Powered by OpenAI | ΛVICΛ 2026")
 
 st.markdown("""
 Upload **PDF / PPTX / DOCX / TXT**
