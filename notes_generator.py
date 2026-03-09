@@ -186,7 +186,7 @@ def process_document(text):
 
 st.title("🗜 Crunch it")
 st.markdown("---")
-st.caption("notes generator | Powered by OpenAI | ΛVICΛ 2026")
+st.caption("Notes generator | Powered by OpenAI | ΛVICΛ 2026")
 
 st.markdown("""
 Upload **PDF / PPTX / DOCX / TXT**
